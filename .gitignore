@@ -32,3 +32,6 @@ output*/
 # Common other ignore files (fuzzy searchers etc.)
 .ignore
 .rgignore
+
+examples/small_capillary/small_capillary
+examples/curved_bifurcation/curved_bifurcation
