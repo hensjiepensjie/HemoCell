@@ -3,7 +3,7 @@
 
 <preInlet>
   <parameters>
-    <lengthN> 40 </lengthN> <!-- Lenght in Lattice Units -->
+    <lengthN> 60 </lengthN> <!-- Lenght in Lattice Units -->
     <Re> 0.5 </Re>
   </parameters>
 </preInlet>
@@ -27,7 +27,7 @@
     <dx> 5e-7 </dx> <!--Physical length of 1 Lattice Unit -->
     <dt> 1e-7 </dt> <!-- Time step for the LBM system. A negative value will set Tau=1 and calc. the corresponding time-step. -->
     <refDir> 2 </refDir>   <!-- Used for resloution  setting and  Re calculation as well (0 (x), 1 (y), 2 (z))-->
-    <refDirN> 200 </refDirN>  <!-- Number of numerical cell in the reference direction -->
+    <refDirN> 333 </refDirN>  <!-- Number of numerical cell in the reference direction -->
     <blockSize> -1 </blockSize>
     <kBT> 4.100531391e-21 </kBT> <!-- in SI, m2 kg s-2 (or J) for T=300 -->
     <particleEnvelope> 35 </particleEnvelope>
@@ -36,8 +36,8 @@
 </domain>
 
 <sim>
-    <tmax> 20000 </tmax> <!-- total number of iterations -->
-    <tmeas> 500 </tmeas> <!-- interval after which data is written --> 
+    <tmax> 200 </tmax> <!-- total number of iterations -->
+    <tmeas> 100 </tmeas> <!-- interval after which data is written --> 
     <tcheckpoint> 2500 </tcheckpoint> 
     <tbalance> 1000 </tbalance> <!-- interval after which balance is performed --> 
 </sim>
