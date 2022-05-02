@@ -334,8 +334,6 @@ void HemoCell::iterate() {
 
   if(global.enableSolidifyMechanics && !(iter%cellfields->solidifyTimescale)) {
     global.statistics.getCurrent()["solidifyCells"].start();
-    cellfields->prepareSolidification();
-    cellfields->syncEnvelopes();
     cellfields->solidifyCells();
     global.statistics.getCurrent().stop();
   }
@@ -494,7 +492,7 @@ void HemoCell::initializeLattice(MultiBlockManagement3D const & management) {
       }
     }
   }
-  
+  /* original code
   SparseBlockStructure3D sb_preinlet = createRegularDistribution3D(preInlet->location,preInlet->nProcs);
   ExplicitThreadAttribution * eta_preinlet = new ExplicitThreadAttribution(preInlet->BlockToMpi);
   preinlet_lattice_management = new MultiBlockManagement3D(sb_preinlet,eta_preinlet,management.getEnvelopeWidth(),management.getRefinementLevel());
@@ -502,7 +500,44 @@ void HemoCell::initializeLattice(MultiBlockManagement3D const & management) {
   SparseBlockStructure3D sb = createRegularDistribution3D(management.getBoundingBox(),nProcs);
   ExplicitThreadAttribution * eta = new ExplicitThreadAttribution(BlockToMpi);
   domain_lattice_management = new MultiBlockManagement3D(sb,eta,management.getEnvelopeWidth(),management.getRefinementLevel());
-  
+  *//* manual assignment
+  if ((*cfg)["domain"]["puncture"].read<int>() == 0) {
+      SparseBlockStructure3D sb_preinlet = createRegularDistribution3D(preInlet->location,1,1,1);
+      ExplicitThreadAttribution * eta_preinlet = new ExplicitThreadAttribution(preInlet->BlockToMpi);
+      preinlet_lattice_management = new MultiBlockManagement3D(sb_preinlet, eta_preinlet, management.getEnvelopeWidth(),
+                                                               management.getRefinementLevel());
+
+      SparseBlockStructure3D sb = createRegularDistribution3D(management.getBoundingBox(),3,1,1);
+      ExplicitThreadAttribution * eta = new ExplicitThreadAttribution(BlockToMpi);
+      domain_lattice_management = new MultiBlockManagement3D(sb, eta, management.getEnvelopeWidth(),
+                                                             management.getRefinementLevel());
+  } else if ((*cfg)["domain"]["puncture"].read<int>() == 1) {
+      SparseBlockStructure3D sb_preinlet = createRegularDistribution3D(preInlet->location, 1, 1, 1);
+      ExplicitThreadAttribution *eta_preinlet = new ExplicitThreadAttribution(preInlet->BlockToMpi);
+      preinlet_lattice_management = new MultiBlockManagement3D(sb_preinlet, eta_preinlet, management.getEnvelopeWidth(),
+                                                               management.getRefinementLevel());
+
+      SparseBlockStructure3D sb = createRegularDistribution3D(management.getBoundingBox(), 3, 1, 1);
+      ExplicitThreadAttribution *eta = new ExplicitThreadAttribution(BlockToMpi);
+      domain_lattice_management = new MultiBlockManagement3D(sb, eta, management.getEnvelopeWidth(),
+                                                             management.getRefinementLevel());
+  }
+  */
+  // assignment in config file
+  SparseBlockStructure3D sb_preinlet = createRegularDistribution3D(preInlet->location,
+                                                                   (*cfg)["preInlet"]["parameters"]["pABx"].read<int>(),
+                                                                   (*cfg)["preInlet"]["parameters"]["pABy"].read<int>(),
+                                                                   (*cfg)["preInlet"]["parameters"]["pABz"].read<int>());
+  ExplicitThreadAttribution * eta_preinlet = new ExplicitThreadAttribution(preInlet->BlockToMpi);
+  preinlet_lattice_management = new MultiBlockManagement3D(sb_preinlet,eta_preinlet,management.getEnvelopeWidth(),management.getRefinementLevel());
+
+  SparseBlockStructure3D sb = createRegularDistribution3D(management.getBoundingBox(),
+                                                          (*cfg)["domain"]["mABx"].read<int>(),
+                                                          (*cfg)["domain"]["mABy"].read<int>(),
+                                                          (*cfg)["domain"]["mABz"].read<int>());
+  ExplicitThreadAttribution * eta = new ExplicitThreadAttribution(BlockToMpi);
+  domain_lattice_management = new MultiBlockManagement3D(sb,eta,management.getEnvelopeWidth(),management.getRefinementLevel());
+
   preinlet_lattice = new MultiBlockLattice3D<T,DESCRIPTOR>(*preinlet_lattice_management,
             defaultMultiBlockPolicy3D().getBlockCommunicator(),
             defaultMultiBlockPolicy3D().getCombinedStatistics(),
