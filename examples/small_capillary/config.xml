@@ -4,7 +4,10 @@
 <preInlet>
   <parameters>
     <lengthN> 60 </lengthN> <!-- Lenght in Lattice Units -->
-    <Re> 0.5 </Re>
+    <Re> 0.1 </Re>
+   	<pABx> 1 </pABx> <!-- amount of atomic blocks in x direction (pre-inlet) -->
+	  <pABy> 1 </pABy> <!-- amount of atomic blocks in y direction (pre-inlet) -->
+  	<pABz> 1 </pABz> <!-- amount of atomic blocks in z direction (pre-inlet) -->
   </parameters>
 </preInlet>
 
@@ -33,12 +36,15 @@
     <particleEnvelope> 35 </particleEnvelope>
     <kRep> 2e-22 </kRep> <!-- Repulsion Constant -->
     <RepCutoff> 0.7 </RepCutoff> <!-- RepulsionCutoff -->
+    <mABx> 5 </mABx> <!-- amount of atomic blocks in x direction (main domain) -->
+	  <mABy> 5 </mABy> <!-- amount of atomic blocks in y direction (main domain) -->
+	  <mABz> 3 </mABz> <!-- amount of atomic blocks in z direction (main domain) -->
 </domain>
 
 <sim>
-    <tmax> 200 </tmax> <!-- total number of iterations -->
-    <tmeas> 100 </tmeas> <!-- interval after which data is written --> 
-    <tcheckpoint> 2500 </tcheckpoint> 
+    <tmax> 100000 </tmax> <!-- total number of iterations -->
+    <tmeas> 2500 </tmeas> <!-- interval after which data is written --> 
+    <tcheckpoint> 25000 </tcheckpoint> 
     <tbalance> 1000 </tbalance> <!-- interval after which balance is performed --> 
 </sim>
 
