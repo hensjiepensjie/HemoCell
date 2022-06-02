@@ -13,7 +13,7 @@
 
 <parameters>
     <warmup> 10 </warmup> <!-- Number of LBM iterations to prepare fluid field. -->
-    <maxPackIter> 20000 </maxPackIter> <!-- Number of maximal steps for inital packing -->
+    <maxPackIter> 20000 </maxPackIter> <!-- Number of maximal steps for initial packing -->
     <maxFlin> 0.0035 </maxFlin>
 </parameters>
 
@@ -23,7 +23,7 @@
 </ibm>
 
 <domain>
-    <geometry> small_capillary_y.stl </geometry>s
+    <geometry> small_capillary_y_closed.stl </geometry>s
     <fluidEnvelope> 2 </fluidEnvelope>
     <rhoP> 1025 </rhoP>   <!--Density of the surrounding fluid, Physical units [kg/m^3]-->
     <nuP> 1.1e-6 </nuP>   <!-- Kinematic viscosity of blood plasma, physical units [m^2/s]-->
@@ -42,8 +42,8 @@
 </domain>
 
 <sim>
-    <tmax> 100 </tmax> <!-- total number of iterations -->
-    <tmeas> 50 </tmeas> <!-- interval after which data is written --> 
+    <tmax> 5000 </tmax> <!-- total number of iterations -->
+    <tmeas> 500 </tmeas> <!-- interval after which data is written --> 
     <tcheckpoint> 25000 </tcheckpoint> 
     <tbalance> 1000 </tbalance> <!-- interval after which balance is performed --> 
 </sim>
