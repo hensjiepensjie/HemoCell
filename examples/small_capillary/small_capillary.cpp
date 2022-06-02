@@ -55,7 +55,7 @@ int main (int argc, char * argv[]) {
 
   Box3D slice = flagMatrix->getBoundingBox();
 
-/* Some prints to check the values of the inlet slice 
+/* Some prints to check the values of the inlet slice */
 
   hlog << "SLICE x0 = " << slice.x0 << endl;
   hlog << "SLICE x1 = " << slice.x1 << endl;
@@ -63,21 +63,31 @@ int main (int argc, char * argv[]) {
   hlog << "SLICE y1 = " << slice.y1 << endl;
   hlog << "SLICE z0 = " << slice.z0 << endl;
   hlog << "SLICE z1 = " << slice.z1 << endl;
-  */
+  
 
   int max_x = slice.x1;
   int max_y = slice.y1;
   int max_z = slice.z1;
 
   // You can put the inlet inside the domain, or any other side if needed
+  //Coordinate from y-normal
+  slice.z0 = 0;
+  slice.z1 = 50;
+  slice.y0 = 6;
+  slice.y1 = 6;
+  slice.x0 = 130;
+  slice.x1 = 181;
+
+  /* Coordinates from z-normal
   slice.z0 = slice.z1-1.0;
   slice.z1 = slice.z0;
   slice.y0 = 0;
   slice.y1 = 58; // 0.15 * slice.y1
   slice.x0 = 129;
   slice.x1 = 188; // 0.6 * slice.x1
+  */
 
-  /*
+  
   hlog << "SLICE x0 = " << slice.x0 << endl;
   hlog << "SLICE x1 = " << slice.x1 << endl;
   hlog << "SLICE y0 = " << slice.y0 << endl;
@@ -88,13 +98,37 @@ int main (int argc, char * argv[]) {
   hlog << "max_x = " << max_x << endl;
   hlog << "max_y = " << max_y << endl;
   hlog << "max_z = " << max_z << endl;
-  */
+  
 
   // Direction:: -> define the inflow direction (preInlet is on the X negative side)
-  hemocell.preInlet->preInletFromSlice(Direction::Zpos,slice);
-
+  hemocell.preInlet->preInletFromSlice(Direction::Yneg,slice);
   hlog << "(Stl preinlet) (Fluid) Initializing Palabos Fluid Field" << endl;
   hemocell.initializeLattice(voxelizedDomain->getMultiBlockManagement());
+
+
+  /*
+  bool sparse = false;
+  if (sparse) {
+      pcout << "Setting simulation domain mask for sparse decomposition..." << endl;
+      MultiScalarField3D<int>* flagMatrix = new MultiScalarField3D<int>(Nx, Ny, Nz);
+      setToFunction(*flagMatrix, flagMatrix->getBoundingBox(), FlagMaskDomain3D<unsignedshort>(gfData, 1));
+
+      pcout << "Creating sparse representation ..." << endl;
+
+      //Create sparse representation
+      MultiBlockManagement3D sparseBlockManagement =
+          computeSparseManagement(*plb::reparallelize(*flagMatrix, blockSize, blockSize, blockSize), envelopeWidth);
+
+      lattice = new MultiBlockLattice3D<T, DESCRIPTOR>(sparseBlockManagement,
+          defaultMultiBlockPolicy3D().getBlockCommunicator(),
+          defaultMultiBlockPolicy3D().getCombinedStatistics(),
+          defaultMultiBlockPolicy3D().getMultiCellAccess<T, DESCRIPTOR>(),
+          new BackgroundDynamics(omega));
+  }
+  else {
+      lattice = new MultiBlockLattice3D<T, DESCRIPTOR>(Nx, Ny, Nz, new BackgroundDynamics(omega));
+  }
+  */
 
     if (!hemocell.partOfpreInlet) {
       hemocell.lattice->periodicity().toggleAll(false);
@@ -158,32 +192,37 @@ int main (int argc, char * argv[]) {
     if (!hemocell.partOfpreInlet) {
       Box3D bb = hemocell.lattice->getBoundingBox();
 
-      Box3D outlet(290, 297, 170, 194, 88, 128); // right, first branch (0.926*max_x, 0.947*max_x, 0.448*max_y, 0.509*max_y, 0.265*max_z, 0.382*max_z)
+      //z-normal Box3D outlet(290, 297, 170, 194, 88, 128); // right, first branch (0.926*max_x, 0.947*max_x, 0.448*max_y, 0.509*max_y, 0.265*max_z, 0.382*max_z)
+      Box3D outlet(300, max_x, 215, 245, 175, 195);
 
       OnLatticeBoundaryCondition3D<T, DESCRIPTOR>* boundary = new BoundaryConditionInstantiator3D
           < T, DESCRIPTOR, WrappedZouHeBoundaryManager3D<T, DESCRIPTOR> >();
 
-      boundary->addPressureBoundary0P(outlet, *hemocell.lattice, boundary::density);
+      boundary->addPressureBoundary1P(outlet, *hemocell.lattice, boundary::density);
       setBoundaryDensity(*hemocell.lattice, outlet, 1.0);
       
-      Box3D outlet2(243, 292, 270, 343, 87, 91); // right second branch down (0.78*max_x, 0.93*max_x, 0.71*max_y, 0.90*max_y, 0.26*max_z, 0.27*max_z)
+      //z-normal Box3D outlet2(243, 292, 270, 343, 87, 91); // right second branch down (0.78*max_x, 0.93*max_x, 0.71*max_y, 0.90*max_y, 0.26*max_z, 0.27*max_z)
+      Box3D outlet2(245, 292, 245, 250, 280, 325);
 
-      boundary->addPressureBoundary2N(outlet2, *hemocell.lattice, boundary::density);
+      boundary->addPressureBoundary0N(outlet2, *hemocell.lattice, boundary::density);
       setBoundaryDensity(*hemocell.lattice, outlet2, 1.0);
       
-      Box3D outlet3(128, 132, 342, 381, 93, 119); // right third branch end (0.41*max_x, 0.42*max_x, 0.90*max_y, max_y, 0.28*max_z, 0.353*max_z)
+      //z-normal Box3D outlet3(128, 132, 342, 381, 93, 119); // right third branch end (0.41*max_x, 0.42*max_x, 0.90*max_y, max_y, 0.28*max_z, 0.353*max_z)
+      Box3D outlet3(100, 117, 220, 240, 355, max_z);
 
-      boundary->addPressureBoundary0N(outlet3, *hemocell.lattice, boundary::density);
+      boundary->addPressureBoundary1P(outlet3, *hemocell.lattice, boundary::density);
       setBoundaryDensity(*hemocell.lattice, outlet3, 1.0);
       
-      Box3D outlet4(13, 14, 93, 127, 130, 163); // left lower branch (0.043*max_x, 0.044*max_x, 0.246*max_y, 0.333*max_y, 0.39*max_z, 0.486*max_z)
+      //z-normal Box3D outlet4(13, 14, 93, 127, 130, 163); // left lower branch (0.043*max_x, 0.044*max_x, 0.246*max_y, 0.333*max_y, 0.39*max_z, 0.486*max_z)
+      Box3D outlet4(0, 15, 170, 201, 94, 128);
 
-      boundary->addPressureBoundary0N(outlet4, *hemocell.lattice, boundary::density);
+      boundary->addPressureBoundary1P(outlet4, *hemocell.lattice, boundary::density);
       setBoundaryDensity(*hemocell.lattice, outlet4, 1.0);
 
-      Box3D outlet5(36, 37, 10, 46, 50, 91); // left upper branch (0.116*max_x, 0.117*max_x, 0.028*max_y, 0.12*max_y, 0.15*max_z, 0.27*max_z)
+      //z-normal Box3D outlet5(36, 37, 10, 46, 50, 91); // left upper branch (0.116*max_x, 0.117*max_x, 0.028*max_y, 0.12*max_y, 0.15*max_z, 0.27*max_z)
+      Box3D outlet5(7, 34, 245, 295, 10, 45);
 
-      boundary->addPressureBoundary0N(outlet5, *hemocell.lattice, boundary::density);
+      boundary->addPressureBoundary1P(outlet5, *hemocell.lattice, boundary::density);
       setBoundaryDensity(*hemocell.lattice, outlet5, 1.0);
     }
 
