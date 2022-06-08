@@ -104,12 +104,14 @@ int main (int argc, char * argv[]) {
   // Direction:: -> define the inflow direction (preInlet is on the X negative side)
   hemocell.preInlet->preInletFromSlice(Direction::Yneg,slice);
   hlog << "(Stl preinlet) (Fluid) Initializing Palabos Fluid Field" << endl;
-  //MultiBlockManagement3D sparseBlockManagement =
-  //computeSparseManagement(*plb::reparallelize(*flagMatrix, blockSize, blockSize, blockSize), envelopeWidth);
-  //hemocell.initializeLattice(sparseBlockManagement);
+  MultiBlockManagement3D sparseBlockManagement =
+  computeSparseManagement(*plb::reparallelize(*flagMatrix, blockSize, blockSize, blockSize), envelopeWidth);
+  hemocell.initializeLattice(sparseBlockManagement);
+
+  pcout << getMultiBlockInfo(*lattice) << endl;
 
   // Original domain decomposition
-  hemocell.initializeLattice(voxelizedDomain->getMultiBlockManagement());
+  //hemocell.initializeLattice(voxelizedDomain->getMultiBlockManagement());
 
 
   /*
