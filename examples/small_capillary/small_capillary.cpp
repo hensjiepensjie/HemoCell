@@ -12,6 +12,7 @@
 #include "cellInfo.h"
 #include "fluidInfo.h"
 #include "particleInfo.h"
+#include "writeCellInfoCSV.h"
 #include "preInlet.h"
 #include <fenv.h>
 
@@ -71,15 +72,16 @@ int main (int argc, char * argv[]) {
   int max_z = slice.z1;
 
   // You can put the inlet inside the domain, or any other side if needed
-  //Coordinate from y-normal
+  /*Coordinate from y-normal
   slice.z0 = 0;
   slice.z1 = 50;
   slice.y0 = 1;
   slice.y1 = 1;
   slice.x0 = 130;
   slice.x1 = 181;
+  */
 
-  /* Coordinates from z-normal
+  // Coordinates from z-normal
   slice.z0 = slice.z1-1.0;
   slice.z1 = slice.z0;
   slice.y0 = 0;
@@ -88,7 +90,7 @@ int main (int argc, char * argv[]) {
   slice.x1 = 188; // 0.6 * slice.x1
   
 
-  
+  /*
   hlog << "SLICE x0 = " << slice.x0 << endl;
   hlog << "SLICE x1 = " << slice.x1 << endl;
   hlog << "SLICE y0 = " << slice.y0 << endl;
@@ -100,18 +102,25 @@ int main (int argc, char * argv[]) {
   hlog << "max_y = " << max_y << endl;
   hlog << "max_z = " << max_z << endl;
   */
+  
+  int blockSize = (*cfg)["domain"]["blockSize"].read<int>();
+  int envelopeWidth = (*cfg)["domain"]["fluidEnvelope"].read<int>();
 
   // Direction:: -> define the inflow direction (preInlet is on the X negative side)
+  /* y-normal reparallelize
   hemocell.preInlet->preInletFromSlice(Direction::Yneg,slice);
+  
   hlog << "(Stl preinlet) (Fluid) Initializing Palabos Fluid Field" << endl;
   MultiBlockManagement3D sparseBlockManagement =
   computeSparseManagement(*plb::reparallelize(*flagMatrix, blockSize, blockSize, blockSize), envelopeWidth);
   hemocell.initializeLattice(sparseBlockManagement);
-
-  pcout << getMultiBlockInfo(*lattice) << endl;
-
+  */
+  
   // Original domain decomposition
-  //hemocell.initializeLattice(voxelizedDomain->getMultiBlockManagement());
+  hemocell.preInlet->preInletFromSlice(Direction::Zpos,slice);
+  
+  hlog << "(Stl preinlet) (Fluid) Initializing Palabos Fluid Field" << endl;
+  hemocell.initializeLattice(voxelizedDomain->getMultiBlockManagement());
 
 
   /*
@@ -180,7 +189,7 @@ int main (int argc, char * argv[]) {
     hemocell.setOutputs("RBC", outputs);
     hemocell.setOutputs("PLT", outputs);
 
-    outputs = {OUTPUT_VELOCITY,OUTPUT_DENSITY,OUTPUT_FORCE,OUTPUT_BOUNDARY};
+    outputs = {OUTPUT_VELOCITY,OUTPUT_DENSITY,OUTPUT_FORCE,OUTPUT_BOUNDARY,OUTPUT_BOUNDARY,OUTPUT_SHEAR_STRESS,OUTPUT_SHEAR_RATE,OUTPUT_STRAIN_RATE};
     hemocell.setFluidOutputs(outputs);
 
     /* Printing out the values of the outlet slice to see
@@ -200,37 +209,37 @@ int main (int argc, char * argv[]) {
     if (!hemocell.partOfpreInlet) {
       Box3D bb = hemocell.lattice->getBoundingBox();
 
-      //z-normal Box3D outlet(290, 297, 170, 194, 88, 128); // right, first branch (0.926*max_x, 0.947*max_x, 0.448*max_y, 0.509*max_y, 0.265*max_z, 0.382*max_z)
-      Box3D outlet(300, max_x, 210, 250, 175, 195);
+      Box3D outlet(290, 297, 170, 194, 88, 128); // right, first branch (0.926*max_x, 0.947*max_x, 0.448*max_y, 0.509*max_y, 0.265*max_z, 0.382*max_z) z-normal 
+      //Box3D outlet(300, max_x, 210, 250, 175, 195); // y-normal
 
       OnLatticeBoundaryCondition3D<T, DESCRIPTOR>* boundary = new BoundaryConditionInstantiator3D
           < T, DESCRIPTOR, WrappedZouHeBoundaryManager3D<T, DESCRIPTOR> >();
 
-      boundary->addPressureBoundary0P(outlet, *hemocell.lattice, boundary::density);
+      boundary->addPressureBoundary0P(outlet, *hemocell.lattice, boundary::density); // y-normal 0P
       setBoundaryDensity(*hemocell.lattice, outlet, 1.0);
       
-      //z-normal Box3D outlet2(243, 292, 270, 343, 87, 91); // right second branch down (0.78*max_x, 0.93*max_x, 0.71*max_y, 0.90*max_y, 0.26*max_z, 0.27*max_z)
-      Box3D outlet2(235, 300, 245, 270, 280, 340);
+      Box3D outlet2(243, 292, 270, 343, 87, 91); // right second branch down (0.78*max_x, 0.93*max_x, 0.71*max_y, 0.90*max_y, 0.26*max_z, 0.27*max_z) z-normal 
+      //Box3D outlet2(235, 300, 245, 270, 280, 340); // y-normal
 
-      boundary->addPressureBoundary1P(outlet2, *hemocell.lattice, boundary::density);
+      boundary->addPressureBoundary2N(outlet2, *hemocell.lattice, boundary::density); // y-normal 1P
       setBoundaryDensity(*hemocell.lattice, outlet2, 1.0);
       
-      //z-normal Box3D outlet3(128, 132, 342, 381, 93, 119); // right third branch end (0.41*max_x, 0.42*max_x, 0.90*max_y, max_y, 0.28*max_z, 0.353*max_z)
-      Box3D outlet3(100, 117, 220, 240, 355, max_z);
+      Box3D outlet3(128, 132, 342, 381, 93, 119); // right third branch end (0.41*max_x, 0.42*max_x, 0.90*max_y, max_y, 0.28*max_z, 0.353*max_z) z-normal 
+      //Box3D outlet3(100, 117, 220, 240, 355, max_z); // y-normal
 
-      boundary->addPressureBoundary0N(outlet3, *hemocell.lattice, boundary::density);
+      boundary->addPressureBoundary0N(outlet3, *hemocell.lattice, boundary::density); // y-normal 0N
       setBoundaryDensity(*hemocell.lattice, outlet3, 1.0);
       
-      //z-normal Box3D outlet4(13, 14, 93, 127, 130, 163); // left lower branch (0.043*max_x, 0.044*max_x, 0.246*max_y, 0.333*max_y, 0.39*max_z, 0.486*max_z)
-      Box3D outlet4(0, 15, 170, 201, 94, 128);
-
-      boundary->addPressureBoundary0N(outlet4, *hemocell.lattice, boundary::density);
+      Box3D outlet4(13, 14, 93, 127, 130, 163); // left lower branch (0.043*max_x, 0.044*max_x, 0.246*max_y, 0.333*max_y, 0.39*max_z, 0.486*max_z) z-normal 
+      //Box3D outlet4(0, 15, 170, 201, 94, 128); // y-normal
+ 
+      boundary->addPressureBoundary0N(outlet4, *hemocell.lattice, boundary::density); // y-normal 0N
       setBoundaryDensity(*hemocell.lattice, outlet4, 1.0);
 
-      //z-normal Box3D outlet5(36, 37, 10, 46, 50, 91); // left upper branch (0.116*max_x, 0.117*max_x, 0.028*max_y, 0.12*max_y, 0.15*max_z, 0.27*max_z)
-      Box3D outlet5(7, 34, 245, 295, 10, 45);
+      Box3D outlet5(36, 37, 10, 46, 50, 91); // left upper branch (0.116*max_x, 0.117*max_x, 0.028*max_y, 0.12*max_y, 0.15*max_z, 0.27*max_z) z-normal 
+      //Box3D outlet5(7, 34, 245, 295, 10, 45); // y-normal
 
-      boundary->addPressureBoundary0N(outlet5, *hemocell.lattice, boundary::density);
+      boundary->addPressureBoundary0N(outlet5, *hemocell.lattice, boundary::density); // y-normal 0N
       setBoundaryDensity(*hemocell.lattice, outlet5, 1.0);
     }
 
@@ -256,7 +265,7 @@ int main (int argc, char * argv[]) {
     unsigned int tmeas = (*cfg)["sim"]["tmeas"].read<unsigned int>();
     unsigned int tcheckpoint = (*cfg)["sim"]["tcheckpoint"].read<unsigned int>();
     unsigned int tbalance = (*cfg)["sim"]["tbalance"].read<unsigned int>();
-
+    unsigned int tcsv = (*cfg)["sim"]["tcsv"].read<unsigned int>();
 
 
     pcout << "(Stl preinlet) Starting simulation..." << endl;
@@ -302,6 +311,11 @@ int main (int argc, char * argv[]) {
           //pcout << "Particle velocity, Minimum: " << pinfo.min << " Maximum: " << pinfo.max << " Average: " << pinfo.avg << endl;
 
           hemocell.writeOutput();
+      }
+      
+      if (hemocell.iter % tcsv == 0) {
+          pcout << "Saving simple mean cell values to CSV at timestep " << hemocell.iter << endl;
+          writeCellInfo_CSV(hemocell);
       }
 
       if (hemocell.iter % tcheckpoint == 0) {

@@ -5,9 +5,9 @@
   <parameters>
     <lengthN> 60 </lengthN> <!-- Lenght in Lattice Units -->
     <Re> 0.1 </Re>
-    <!--       <pABx> 1 </pABx>  amount of atomic blocks in x direction (pre-inlet) -->
-    <!--         <pABy> 1 </pABy>  amount of atomic blocks in y direction (pre-inlet) -->
-    <!--       <pABz> 1 </pABz>  amount of atomic blocks in z direction (pre-inlet) -->
+    <pABx> 1 </pABx>  <!--       amount of atomic blocks in x direction (pre-inlet) -->
+    <pABy> 1 </pABy>  <!--         amount of atomic blocks in y direction (pre-inlet) -->
+    <pABz> 1 </pABz>  <!--       amount of atomic blocks in z direction (pre-inlet) -->
   </parameters>
 </preInlet>
 
@@ -23,28 +23,29 @@
 </ibm>
 
 <domain>
-    <geometry> small_capillary_y_closed.stl </geometry>s
+    <geometry> small_capillary_z_closed.stl </geometry>s
     <fluidEnvelope> 2 </fluidEnvelope>
     <rhoP> 1025 </rhoP>   <!--Density of the surrounding fluid, Physical units [kg/m^3]-->
     <nuP> 1.1e-6 </nuP>   <!-- Kinematic viscosity of blood plasma, physical units [m^2/s]-->
     <dx> 5e-7 </dx> <!--Physical length of 1 Lattice Unit -->
     <dt> 1e-7 </dt> <!-- Time step for the LBM system. A negative value will set Tau=1 and calc. the corresponding time-step. -->
-    <refDir> 1 </refDir>   <!-- Used for resloution  setting and  Re calculation as well (0 (x), 1 (y), 2 (z))-->
+    <refDir> 2 </refDir>   <!-- Used for resloution  setting and  Re calculation as well (0 (x), 1 (y), 2 (z))-->
     <refDirN> 333 </refDirN>  <!-- Number of numerical cell in the reference direction -->
     <blockSize> -1 </blockSize>
     <kBT> 4.100531391e-21 </kBT> <!-- in SI, m2 kg s-2 (or J) for T=300 -->
     <particleEnvelope> 35 </particleEnvelope>
     <kRep> 2e-22 </kRep> <!-- Repulsion Constant -->
     <RepCutoff> 0.7 </RepCutoff> <!-- RepulsionCutoff -->
-  <!--    <mABx> 5 </mABx> amount of atomic blocks in x direction (main domain) -->
-  <!--     <mABy> 5 </mABy>  amount of atomic blocks in y direction (main domain) -->
-  <!--     <mABz> 3 </mABz>  amount of atomic blocks in z direction (main domain) -->
+    <mABx> 5 </mABx> <!--    amount of atomic blocks in x direction (main domain) -->
+    <mABy> 5 </mABy>  <!--     amount of atomic blocks in y direction (main domain) -->
+    <mABz> 3 </mABz>  <!--     amount of atomic blocks in z direction (main domain) -->
 </domain>
 
 <sim>
-    <tmax> 5000 </tmax> <!-- total number of iterations -->
-    <tmeas> 500 </tmeas> <!-- interval after which data is written --> 
-    <tcheckpoint> 25000 </tcheckpoint> 
+    <tmax> 2000000 </tmax> <!-- total number of iterations -->
+    <tmeas> 2500 </tmeas> <!-- interval after which data is written --> 
+    <tcsv>  1000 </tcsv> <!-- interval after which simple mean cell values are written to a CSV file --> 
+    <tcheckpoint> 50000 </tcheckpoint> 
     <tbalance> 1000 </tbalance> <!-- interval after which balance is performed --> 
 </sim>
 
